@@ -1,0 +1,7 @@
+# Database and temporary files
+hangout_store.sqlite
+*.log
+*.sqlite
+.idea/
+.vscode/
+Thumbs.db
