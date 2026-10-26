@@ -141,18 +141,18 @@ initDatabase();
             }
         };
 
-        // GLOBAL APPLICATION STATE
+        // GLOBAL APPLICATION STATE WITH PERSISTENCE
         const state = {
-            currentView: 'hangouts', // 'hangouts', 'friends', 'map'
+            currentView: localStorage.getItem('friendApp_currentView') || 'hangouts', // 'hangouts', 'friends', 'map'
             currentUser: null,
             allUsers: [],
             hangouts: [],
             friends: [],
             notifications: [],
             unreadCount: 0,
-            activeFilter: 'all',
+            activeFilter: localStorage.getItem('friendApp_activeFilter') || 'all',
             searchQuery: '',
-            friendCircle: 'all',
+            friendCircle: localStorage.getItem('friendApp_friendCircle') || 'all',
             friendSearch: '',
             selectedHangout: null,
             isNotifOpen: false
@@ -184,6 +184,71 @@ initDatabase();
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
+        }
+
+        // ==============================================================================
+        // AVATAR POOLS & SMART GENDER DETECTION
+        // ==============================================================================
+        const AVATAR_POOLS = {
+            female: [
+                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=300&q=80'
+            ],
+            male: [
+                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1513956589380-bad6acb9b9d4?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=300&q=80',
+                'https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&w=300&q=80'
+            ]
+        };
+
+        const FEMALE_NAMES_SET = new Set([
+            'fatima', 'fatimah', 'zainab', 'ayesha', 'aisha', 'ayesh', 'maryam', 'mariam', 'sara', 'sarah',
+            'hira', 'aliza', 'noor', 'amna', 'kinza', 'rabia', 'maham', 'sadia', 'iqra', 'areeba', 'samina',
+            'nida', 'zoya', 'sidra', 'bushra', 'anam', 'fariha', 'laiba', 'mehwish', 'shazia', 'rubina',
+            'sania', 'javeria', 'mehak', 'dua', 'komal', 'kiran', 'sana', 'maria', 'anum', 'asma', 'sumaira',
+            'tuba', 'tooba', 'eman', 'urwa', 'hina', 'mahnoor', 'farah', 'bisma', 'hoor', 'hoorain', 'nazia',
+            'shabana', 'parveen', 'bano', 'begum', 'bibi', 'khatoon', 'shehnaz', 'tahira', 'fouzia', 'samra',
+            'amber', 'neha', 'sonia', 'aliyah', 'aliya', 'leila', 'layla', 'yasmin', 'lubna', 'naila', 'uzma',
+            'tasneem', 'fareeha', 'anila', 'humaira', 'farzana', 'zahida', 'nighat', 'muskan', 'manahil',
+            'alishba', 'madiha', 'shanzay', 'aleena', 'alina', 'aqsa', 'iram', 'shaista', 'sundus', 'faiza'
+        ]);
+
+        function detectGenderFromName(name) {
+            if (!name) return 'male';
+            const lower = name.toLowerCase().trim();
+            const tokens = lower.split(/[\s,._-]+/);
+            for (const t of tokens) {
+                if (FEMALE_NAMES_SET.has(t)) return 'female';
+                if (t.endsWith('bano') || t.endsWith('bibi') || t.endsWith('begum') || t.endsWith('khatoon')) return 'female';
+            }
+            return 'male';
+        }
+
+        let currentModalGender = 'male';
+
+        function getRandomAvatar(gender) {
+            const list = AVATAR_POOLS[gender] || AVATAR_POOLS.male;
+            const idx = Math.floor(Math.random() * list.length);
+            return list[idx];
         }
 
         function formatHangoutDate(dateStr, timeStr) {
@@ -231,6 +296,15 @@ initDatabase();
                 }
 
                 renderApp();
+
+                // Reopen last active hangout modal if user was viewing one
+                const lastHangoutId = localStorage.getItem('friendApp_lastHangoutId');
+                if (lastHangoutId && !state.selectedHangout) {
+                    const exists = state.hangouts.some(h => h.id == lastHangoutId);
+                    if (exists) {
+                        openHangoutDetail(parseInt(lastHangoutId));
+                    }
+                }
             } catch (err) {
                 console.error("Failed to load app data", err);
                 document.getElementById('app').innerHTML = `
@@ -302,25 +376,15 @@ initDatabase();
                                 <span class="sm:hidden">Plan</span>
                             </button>
 
-                            <!-- Persona Switcher -->
-                            <div class="relative group">
-                                <button class="flex items-center gap-1.5 p-1.5 rounded-xl bg-slate-800 border border-white/10 hover:border-brand-500/50 transition">
-                                    <img src="${state.currentUser?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'}" class="w-7 h-7 rounded-full object-cover ring-1 ring-brand-400" />
-                                    <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 mr-1"></i>
-                                </button>
-                                <div class="absolute right-0 mt-2 w-60 p-2 rounded-2xl bg-slate-900 border border-white/10 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                                    <div class="px-3 py-1.5 border-b border-white/5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                                        Test as Persona:
-                                    </div>
-                                    <div class="space-y-1 py-1">
-                                        ${state.allUsers.map(u => `
-                                            <button onclick="switchUserPersona(${u.id})" class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-left text-xs transition ${u.id === state.currentUser?.id ? 'bg-brand-600/20 text-brand-300 font-semibold border border-brand-500/30' : 'hover:bg-slate-800 text-slate-300'}">
-                                                <img src="${u.avatar_url}" class="w-6 h-6 rounded-full object-cover" />
-                                                <span class="truncate">${escapeHtml(u.name)}</span>
-                                                ${u.id === state.currentUser?.id ? '<i data-lucide="check" class="w-3.5 h-3.5 text-brand-400 ml-auto"></i>' : ''}
-                                            </button>
-                                        `).join('')}
-                                    </div>
+                            <!-- Current User Badge (Muhammad Faisal Only) -->
+                            <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-slate-800/90 border border-white/10 shadow-sm">
+                                <div class="relative">
+                                    <img src="${state.currentUser?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'}" class="w-7 h-7 rounded-full object-cover ring-2 ring-brand-400" />
+                                    <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-900" title="Online in Quetta"></span>
+                                </div>
+                                <div class="hidden sm:block text-left">
+                                    <div class="font-bold text-xs text-white leading-tight">Muhammad Faisal</div>
+                                    <div class="text-[10px] text-emerald-400 font-semibold leading-none">Organizer (Host)</div>
                                 </div>
                             </div>
                         </div>
@@ -565,12 +629,17 @@ initDatabase();
                             />
                         </div>
 
-                        <div class="flex items-center gap-1.5 overflow-x-auto">
-                            ${['all', 'Best Friend', 'Close Friend', 'College Friend', 'Work Friend', 'Gym Buddy'].map(circle => `
-                                <button onclick="setFriendCircleFilter('${circle}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${state.friendCircle === circle ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-800/60 text-slate-400 hover:text-white'}">
-                                    ${circle === 'all' ? 'All Friends' : circle}
-                                </button>
-                            `).join('')}
+                        <div class="flex items-center gap-1.5 overflow-x-auto pb-1">
+                            ${(() => {
+                                const defaultCircles = ['all', 'Best Friend', 'Close Friend', 'College Friend', 'Work Friend', 'Gym Buddy', 'Family & Cousin'];
+                                const customCircles = Array.from(new Set(state.friends.map(f => f.circle).filter(c => c && !defaultCircles.includes(c))));
+                                const allTabs = [...defaultCircles, ...customCircles];
+                                return allTabs.map(circle => `
+                                    <button onclick="setFriendCircleFilter('${circle}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${state.friendCircle === circle ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-800/60 text-slate-400 hover:text-white'}">
+                                        ${circle === 'all' ? 'All Friends' : escapeHtml(circle)}
+                                    </button>
+                                `).join('');
+                            })()}
                         </div>
                     </div>
 
@@ -759,6 +828,7 @@ initDatabase();
         // ==============================================================================
         function switchView(viewName) {
             state.currentView = viewName;
+            try { localStorage.setItem('friendApp_currentView', viewName); } catch (e) {}
             renderApp();
         }
 
@@ -777,6 +847,7 @@ initDatabase();
 
         async function setHangoutFilter(filterName) {
             state.activeFilter = filterName;
+            try { localStorage.setItem('friendApp_activeFilter', filterName); } catch (e) {}
             const res = await api.get('get_hangouts', { filter: state.activeFilter, search: state.searchQuery });
             if (res.success) {
                 state.hangouts = res.hangouts;
@@ -799,6 +870,7 @@ initDatabase();
 
         async function setFriendCircleFilter(circleName) {
             state.friendCircle = circleName;
+            try { localStorage.setItem('friendApp_friendCircle', circleName); } catch (e) {}
             const res = await api.get('get_friends', { circle: state.friendCircle, search: state.friendSearch });
             if (res.success) {
                 state.friends = res.friends;
@@ -858,6 +930,7 @@ initDatabase();
 
             state.selectedHangout = res;
             activeDetailTab = 'plan';
+            try { localStorage.setItem('friendApp_lastHangoutId', id); } catch (e) {}
             renderHangoutDetailModal();
         }
 
@@ -1252,13 +1325,20 @@ initDatabase();
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-300 mb-1">Vibe Category</label>
-                                    <select id="create-category" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                                    <select id="create-category" onchange="toggleCustomHangoutCategory(this.value)" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
                                         <option value="Parties & Social">Parties & Social</option>
                                         <option value="Food & Dining">Food & Dining</option>
                                         <option value="Gaming & Chill">Gaming & Chill</option>
                                         <option value="Outdoor & Nature">Outdoor & Nature</option>
                                         <option value="Coffee & Coworking">Coffee & Coworking</option>
+                                        <option value="Sports & Fitness">Sports & Fitness</option>
+                                        <option value="Road Trip & Travel">Road Trip & Travel</option>
+                                        <option value="Qawwali & Music">Qawwali & Music</option>
+                                        <option value="__CUSTOM__">➕ Custom Category...</option>
                                     </select>
+                                    <div id="custom-hangout-category-box" class="hidden mt-2">
+                                        <input type="text" id="create-custom-category" placeholder="Enter custom vibe category..." class="w-full bg-slate-950 border border-brand-500 rounded-xl px-3 py-1.5 text-xs text-brand-200 placeholder-slate-500" />
+                                    </div>
                                 </div>
                             </div>
 
@@ -1383,7 +1463,11 @@ initDatabase();
         async function handleCreateHangoutSubmit(e) {
             e.preventDefault();
             const title = document.getElementById('create-title').value.trim();
-            const category = document.getElementById('create-category').value;
+            let category = document.getElementById('create-category').value;
+            if (category === '__CUSTOM__') {
+                const customVal = document.getElementById('create-custom-category')?.value.trim();
+                category = customVal || 'Custom Meetup';
+            }
             const purpose = document.getElementById('create-purpose').value.trim();
             const location = document.getElementById('create-location').value.trim();
             const lat = parseFloat(document.getElementById('create-lat')?.value || '30.1798');
@@ -1432,9 +1516,20 @@ initDatabase();
         // ==============================================================================
         // FRIEND FORM MODAL (ADD & EDIT)
         // ==============================================================================
+        // ==============================================================================
+        // FRIEND FORM MODAL (ADD & EDIT) & AUTO-AVATAR GENDER SELECTION
+        // ==============================================================================
+        const PRESET_CIRCLES = ['Best Friend', 'Close Friend', 'College Friend', 'Work Friend', 'Gym Buddy', 'Neighborhood', 'Family & Cousin'];
+
         function openFriendModal(existingFriend = null) {
             const isEditing = Boolean(existingFriend);
             const modalRoot = document.getElementById('modal-container');
+
+            const existingGender = existingFriend ? detectGenderFromName(existingFriend.name) : 'male';
+            currentModalGender = existingGender;
+
+            const initialAvatar = existingFriend?.avatar_url || getRandomAvatar(existingGender);
+            const isCustomCircle = existingFriend && existingFriend.circle && !PRESET_CIRCLES.includes(existingFriend.circle);
 
             modalRoot.innerHTML = `
                 <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-6 overflow-y-auto">
@@ -1444,7 +1539,7 @@ initDatabase();
                                 <h3 class="font-display text-xl font-bold text-white">
                                     ${isEditing ? `Edit ${escapeHtml(existingFriend.name)}'s Details` : 'Add Friend to Directory'}
                                 </h3>
-                                <p class="text-xs text-slate-400 mt-0.5">Contact info, qualities, behavior, and where they live.</p>
+                                <p class="text-xs text-slate-400 mt-0.5">Contact info, auto-avatar selection, qualities, and where they live.</p>
                             </div>
                             <button onclick="closeModal()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white">
                                 <i data-lucide="x" class="w-5 h-5"></i>
@@ -1452,29 +1547,97 @@ initDatabase();
                         </div>
 
                         <form onsubmit="handleFriendFormSubmit(event, ${existingFriend ? existingFriend.id : 'null'})" class="mt-5 space-y-4">
-                            <div class="grid grid-cols-2 gap-3">
+                            <!-- Name & Circle -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-xs font-bold text-slate-300 mb-1">Friend Name *</label>
-                                    <input type="text" id="friend-name" required value="${existingFriend ? escapeHtml(existingFriend.name) : ''}" placeholder="e.g. Bilal Ahmed" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white" />
+                                    <input 
+                                        type="text" 
+                                        id="friend-name" 
+                                        required 
+                                        value="${existingFriend ? escapeHtml(existingFriend.name) : ''}" 
+                                        oninput="handleFriendNameInput(this.value)" 
+                                        placeholder="e.g. Fatima Noor or Bilal Ahmed" 
+                                        class="w-full bg-slate-800 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-500" 
+                                    />
+                                    <span class="text-[10px] text-slate-400 mt-0.5 block">Auto selects female/male portrait as you type!</span>
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-300 mb-1">Circle / Category</label>
-                                    <select id="friend-circle" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
-                                        ${['Best Friend', 'Close Friend', 'College Friend', 'Work Friend', 'Gym Buddy', 'Neighborhood'].map(c => `
+                                    <select id="friend-circle" onchange="toggleCustomFriendCircle(this.value)" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                                        ${PRESET_CIRCLES.map(c => `
                                             <option value="${c}" ${existingFriend && existingFriend.circle === c ? 'selected' : ''}>${c}</option>
                                         `).join('')}
+                                        <option value="__CUSTOM__" ${isCustomCircle ? 'selected' : ''}>➕ Custom Circle...</option>
                                     </select>
+                                    <div id="custom-circle-box" class="${isCustomCircle ? '' : 'hidden'} mt-2">
+                                        <input 
+                                            type="text" 
+                                            id="friend-custom-circle" 
+                                            value="${isCustomCircle ? escapeHtml(existingFriend.circle) : ''}" 
+                                            placeholder="Enter custom circle (e.g. Travel Crew, Cricket Team)..." 
+                                            class="w-full bg-slate-950 border border-emerald-500 rounded-xl px-3 py-1.5 text-xs text-emerald-200 placeholder-slate-500" 
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-3">
+                            <!-- Avatar & Smart Gender Selector -->
+                            <div class="p-3.5 rounded-2xl bg-slate-800/60 border border-white/10 space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-bold text-white flex items-center gap-1.5">
+                                        <i data-lucide="camera" class="w-3.5 h-3.5 text-brand-400"></i>
+                                        Avatar Picture & Smart Gender Detection
+                                    </label>
+                                    <span id="detected-gender-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${existingGender === 'female' ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30' : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'}">
+                                        ${existingGender === 'female' ? '👩 Female Profile' : '👨 Male Profile'}
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center gap-4">
+                                    <div class="relative flex-shrink-0">
+                                        <img id="friend-avatar-preview" src="${initialAvatar}" class="w-16 h-16 rounded-2xl object-cover ring-2 ring-brand-500 shadow-lg" />
+                                        <span id="gender-icon-badge" class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-slate-900 border border-white/20 flex items-center justify-center text-xs">
+                                            ${existingGender === 'female' ? '👩' : '👨'}
+                                        </span>
+                                    </div>
+
+                                    <div class="flex-1 space-y-2">
+                                        <div class="flex flex-wrap items-center gap-1.5">
+                                            <button type="button" onclick="setFriendGenderManual('male')" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 text-xs font-medium flex items-center gap-1 transition">
+                                                <span>👨 Male Avatar</span>
+                                            </button>
+                                            <button type="button" onclick="setFriendGenderManual('female')" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 text-xs font-medium flex items-center gap-1 transition">
+                                                <span>👩 Female Avatar</span>
+                                            </button>
+                                            <button type="button" onclick="randomizeCurrentAvatar()" class="px-2.5 py-1 rounded-xl bg-brand-600/20 hover:bg-brand-600/30 text-brand-300 border border-brand-500/30 text-xs font-bold flex items-center gap-1 transition">
+                                                <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                                                <span>🎲 New Pic</span>
+                                            </button>
+                                        </div>
+                                        
+                                        <div>
+                                            <input 
+                                                type="url" 
+                                                id="friend-avatar" 
+                                                oninput="handleManualAvatarUrl(this.value)" 
+                                                value="${initialAvatar}" 
+                                                placeholder="Avatar image URL (auto-generated or paste custom)..." 
+                                                class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-1.5 text-[11px] text-slate-300 font-mono focus:outline-none focus:border-brand-500" 
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-xs font-bold text-slate-300 mb-1">Phone / WhatsApp</label>
                                     <input type="text" id="friend-phone" value="${existingFriend ? escapeHtml(existingFriend.phone || '') : ''}" placeholder="+92 300 1234567" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white font-mono" />
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-300 mb-1">Email (Optional)</label>
-                                    <input type="email" id="friend-email" value="${existingFriend ? escapeHtml(existingFriend.email || '') : ''}" placeholder="bilal@example.com" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white" />
+                                    <input type="email" id="friend-email" value="${existingFriend ? escapeHtml(existingFriend.email || '') : ''}" placeholder="friend@example.com" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white" />
                                 </div>
                             </div>
 
@@ -1483,7 +1646,7 @@ initDatabase();
                                     <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
                                     Kaha Rehta Hai (Location / Area / City)
                                 </label>
-                                <input type="text" id="friend-location" value="${existingFriend ? escapeHtml(existingFriend.location || '') : ''}" placeholder="e.g. Gulshan-e-Iqbal Block 4, Karachi" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white" />
+                                <input type="text" id="friend-location" value="${existingFriend ? escapeHtml(existingFriend.location || '') : ''}" placeholder="e.g. Model Town / Zarghoon Road, Quetta" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white" />
                             </div>
 
                             <div>
@@ -1491,7 +1654,7 @@ initDatabase();
                                     <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
                                     Kia Karta Hai (Profession / Job / Studies)
                                 </label>
-                                <input type="text" id="friend-occupation" value="${existingFriend ? escapeHtml(existingFriend.occupation || '') : ''}" placeholder="e.g. Software Engineer, Doctor, Student, Photographer" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white" />
+                                <input type="text" id="friend-occupation" value="${existingFriend ? escapeHtml(existingFriend.occupation || '') : ''}" placeholder="e.g. Software Engineer, Doctor, Student, Banker" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white" />
                             </div>
 
                             <div>
@@ -1499,7 +1662,7 @@ initDatabase();
                                     <i data-lucide="award" class="w-3.5 h-3.5"></i>
                                     Qualities / Skills (Comma-separated)
                                 </label>
-                                <input type="text" id="friend-qualities" value="${existingFriend ? escapeHtml(existingFriend.qualities || '') : ''}" placeholder="e.g. Car Driver, BBQ Master, Guitarist, Always punctual" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white" />
+                                <input type="text" id="friend-qualities" value="${existingFriend ? escapeHtml(existingFriend.qualities || '') : ''}" placeholder="e.g. BBQ Master, 4x4 Driver, Guitarist, Punctual" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white" />
                             </div>
 
                             <div>
@@ -1508,11 +1671,6 @@ initDatabase();
                                     Behavior & Habits (Kaisa behavior hai)
                                 </label>
                                 <textarea id="friend-behavior" rows="2" placeholder="e.g. Hamesha time pe ata hai, driving bohot achi karta hai, calm aur chill nature hai." class="w-full bg-slate-800 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white">${existingFriend ? escapeHtml(existingFriend.behavior_notes || '') : ''}</textarea>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 mb-1">Avatar Image URL (Optional)</label>
-                                <input type="url" id="friend-avatar" value="${existingFriend ? escapeHtml(existingFriend.avatar_url || '') : ''}" placeholder="https://images.unsplash.com/photo-..." class="w-full bg-slate-800 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white" />
                             </div>
 
                             <div class="pt-3 border-t border-white/10 flex items-center justify-end gap-3">
@@ -1527,10 +1685,102 @@ initDatabase();
             if (window.lucide) window.lucide.createIcons();
         }
 
+        function handleFriendNameInput(name) {
+            const gender = detectGenderFromName(name);
+            const badge = document.getElementById('detected-gender-badge');
+            const iconBadge = document.getElementById('gender-icon-badge');
+            const avatarImg = document.getElementById('friend-avatar-preview');
+            const avatarInput = document.getElementById('friend-avatar');
+
+            if (currentModalGender !== gender) {
+                currentModalGender = gender;
+                const newPic = getRandomAvatar(gender);
+                if (avatarImg) avatarImg.src = newPic;
+                if (avatarInput) avatarInput.value = newPic;
+            }
+
+            if (badge) {
+                if (gender === 'female') {
+                    badge.innerHTML = '👩 Auto: Female Profile';
+                    badge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-pink-500/20 text-pink-300 border border-pink-500/30';
+                } else {
+                    badge.innerHTML = '👨 Auto: Male Profile';
+                    badge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30';
+                }
+            }
+            if (iconBadge) {
+                iconBadge.innerHTML = gender === 'female' ? '👩' : '👨';
+            }
+        }
+
+        function setFriendGenderManual(gender) {
+            currentModalGender = gender;
+            const newPic = getRandomAvatar(gender);
+            const badge = document.getElementById('detected-gender-badge');
+            const iconBadge = document.getElementById('gender-icon-badge');
+            const avatarImg = document.getElementById('friend-avatar-preview');
+            const avatarInput = document.getElementById('friend-avatar');
+
+            if (avatarImg) avatarImg.src = newPic;
+            if (avatarInput) avatarInput.value = newPic;
+            if (badge) {
+                badge.innerHTML = gender === 'female' ? '👩 Female Selected' : '👨 Male Selected';
+                badge.className = gender === 'female' 
+                    ? 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-pink-500/20 text-pink-300 border border-pink-500/30'
+                    : 'px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30';
+            }
+            if (iconBadge) {
+                iconBadge.innerHTML = gender === 'female' ? '👩' : '👨';
+            }
+        }
+
+        function randomizeCurrentAvatar() {
+            const newPic = getRandomAvatar(currentModalGender);
+            const avatarImg = document.getElementById('friend-avatar-preview');
+            const avatarInput = document.getElementById('friend-avatar');
+            if (avatarImg) avatarImg.src = newPic;
+            if (avatarInput) avatarInput.value = newPic;
+        }
+
+        function handleManualAvatarUrl(url) {
+            const avatarImg = document.getElementById('friend-avatar-preview');
+            if (avatarImg && url.trim().length > 10) {
+                avatarImg.src = url.trim();
+            }
+        }
+
+        function toggleCustomFriendCircle(val) {
+            const box = document.getElementById('custom-circle-box');
+            if (box) {
+                if (val === '__CUSTOM__') {
+                    box.classList.remove('hidden');
+                    document.getElementById('friend-custom-circle')?.focus();
+                } else {
+                    box.classList.add('hidden');
+                }
+            }
+        }
+
+        function toggleCustomHangoutCategory(val) {
+            const box = document.getElementById('custom-hangout-category-box');
+            if (box) {
+                if (val === '__CUSTOM__') {
+                    box.classList.remove('hidden');
+                    document.getElementById('create-custom-category')?.focus();
+                } else {
+                    box.classList.add('hidden');
+                }
+            }
+        }
+
         async function handleFriendFormSubmit(e, existingId) {
             e.preventDefault();
             const name = document.getElementById('friend-name').value.trim();
-            const circle = document.getElementById('friend-circle').value;
+            let circle = document.getElementById('friend-circle').value;
+            if (circle === '__CUSTOM__') {
+                const customVal = document.getElementById('friend-custom-circle')?.value.trim();
+                circle = customVal || 'Custom Circle';
+            }
             const phone = document.getElementById('friend-phone').value.trim();
             const email = document.getElementById('friend-email').value.trim();
             const location = document.getElementById('friend-location').value.trim();
@@ -1559,6 +1809,8 @@ initDatabase();
 
         function closeModal() {
             clearInterval(chatInterval);
+            state.selectedHangout = null;
+            try { localStorage.removeItem('friendApp_lastHangoutId'); } catch (e) {}
             document.getElementById('modal-container').innerHTML = '';
         }
 

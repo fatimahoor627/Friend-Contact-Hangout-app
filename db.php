@@ -230,7 +230,7 @@ function seedQuettaData($pdo) {
     $users = [
         [
             'id' => 1,
-            'name' => 'Mir Faisal Baloch',
+            'name' => 'Muhammad Faisal',
             'email' => 'faisal@quetta.com',
             'password_hash' => password_hash('password123', PASSWORD_DEFAULT),
             'avatar_url' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
@@ -333,6 +333,58 @@ function seedQuettaData($pdo) {
             'behavior_notes' => 'Campfire ke ird gird jadu jaisi Rubab bajata hai. Ziarat aur Hanna Lake camping mein sab se active hota hai.',
             'circle' => 'Gym Buddy',
             'avatar_url' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80'
+        ],
+        [
+            'id' => 6,
+            'user_id' => 1,
+            'name' => 'Tehmina',
+            'phone' => '+92 331 4567890',
+            'email' => 'tehmina@example.com',
+            'location' => 'Cantt Zarghoon Road, Quetta',
+            'occupation' => 'Fashion Designer & Content Creator',
+            'qualities' => 'Aesthetic Planner, Photography, Desserts & Baking, Positive Vibe',
+            'behavior_notes' => 'Bohot sweet aur cooperative nature hai, meetups ki photography aur aesthetic decor bohot achi karti hai.',
+            'circle' => 'Close Friend',
+            'avatar_url' => 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=300&q=80'
+        ],
+        [
+            'id' => 7,
+            'user_id' => 1,
+            'name' => 'Bilal Ahmed',
+            'phone' => '+92 300 9876543',
+            'email' => 'bilal.ahmed@example.com',
+            'location' => 'Samungli Road, Quetta',
+            'occupation' => 'Senior Software Engineer',
+            'qualities' => 'Roadtrip Driver, Tech Gadgets, BBQ Master, Gaming Champion',
+            'behavior_notes' => 'Hamesha loyal aur ready to help. Har hangout mein time pe pohochta hai aur music arrange karta hai.',
+            'circle' => 'Best Friend',
+            'avatar_url' => 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80'
+        ],
+        [
+            'id' => 8,
+            'user_id' => 1,
+            'name' => 'Kainat Rafiq',
+            'phone' => '+92 322 6543210',
+            'email' => 'kainat.rafiq@example.com',
+            'location' => 'Jinnah Town, Quetta',
+            'occupation' => 'Clinical Psychologist',
+            'qualities' => 'Great Listener, Motivational, Fun Conversations, Coffee Lover',
+            'behavior_notes' => 'Sab dosto ka khayal rakhti hai, conversation kabhi boring nahi hone deti. Super friendly personality.',
+            'circle' => 'College Friend',
+            'avatar_url' => 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80'
+        ],
+        [
+            'id' => 9,
+            'user_id' => 1,
+            'name' => 'Alina Shahzad',
+            'phone' => '+92 344 1122334',
+            'email' => 'alina.shahzad@example.com',
+            'location' => 'Shahbaz Town, Quetta',
+            'occupation' => 'Architect & Interior Designer',
+            'qualities' => 'Venue Scouting, Playlist Curator, Board Games Master, Punctual',
+            'behavior_notes' => 'Creative mindset, gathering ko plan aur organize karne mein expert hai. Always brings energy!',
+            'circle' => 'Close Friend',
+            'avatar_url' => 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80'
         ]
     ];
 

@@ -12,10 +12,8 @@ require_once __DIR__ . '/db.php';
 initDatabase();
 $pdo = getDbConnection();
 
-// Set default logged in user if session empty
-if (!isset($_SESSION['user_id'])) {
-    $_SESSION['user_id'] = 1;
-}
+// Lock active user to Muhammad Faisal (ID 1)
+$_SESSION['user_id'] = 1;
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
